@@ -1,93 +1,86 @@
 import React, { Component } from "react";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
 import Counter from "./counter";
+import appSlice from "../redux/appSlice";
+function Counters() {
+  let [counterList, setCounter] = useState({
+    counters: [
+      { id: 1, value: 0, product: "water" },
+      { id: 2, value: 1, product: "bread" },
+      { id: 3, value: 2, product: "honey" },
+      { id: 4, value: 3, product: "potato" },
+    ],
+  });
+  let dispacth = useDispatch();
 
-class Counters extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      counters: [
-        { id: 1, value: 0, product: "water" },
-        { id: 2, value: 1, product: "bread" },
-        { id: 3, value: 2, product: "honey" },
-        { id: 4, value: 3, product: "potato" },
-      ],
-    };
-    this.calcProductCount();
-  }
-  delete = (counterId) => {
-    let counters = this.state.counters.filter(
-      (counter) => counter.id != counterId
-    );
-    console.log("DDDDD", counters);
-    this.setState({ counters }, () => {
-      this.calcProductCount();
+  const deleteIt = (counterId) => {
+    let counters = counterList.counters.filter((counter) => {
+      if (counter.id != counterId) return counter;
     });
+    setCounter({ counters });
+    calcProductCount(counters);
   };
-  reset = () => {
-    const counters = this.state.counters.map((counter) => {
+
+  const reset = () => {
+    const counters = counterList.counters.map((counter) => {
       counter.value = 0;
       return counter;
     });
 
-    this.setState({ counters }, () => {
-      this.calcProductCount();
-    });
+    setCounter({ counters });
+    calcProductCount();
   };
 
-  dec = (counterId) => {
-    let counters = this.state.counters.map((counter) => {
+  const dec = (counterId) => {
+    let counters = counterList.counters.map((counter) => {
       if (counter.id == counterId) {
         counter.value--;
       }
       return counter;
     });
-    this.setState({ counters }, () => {
-      this.calcProductCount();
-    });
+    setCounter({ counters });
+    calcProductCount();
   };
 
-  incr = (counterId) => {
-    let counters = this.state.counters.map((counter) => {
+  const incr = (counterId) => {
+    let counters = counterList.counters.map((counter) => {
       if (counter.id == counterId) {
         counter.value++;
       }
       return counter;
     });
-    this.setState({ counters }, () => {
-      this.calcProductCount();
-    });
+    setCounter({ counters });
+    calcProductCount();
   };
 
-  calcProductCount() {
-    let count = 0;
-    this.state.counters.map((counter) => {
-      count += counter.value;
-    });
-    this.props.productCountOnParent(count);
-  }
-  componentDidUpdate(props, state) {
-    console.log("props", props);
-    console.log("state", state);
-  }
+  const calcProductCount = (counters) => {
+    let totalCount = 0;
+    if (!counters) counters = counterList.counters;
 
-  render() {
-    return (
-      <div>
-        <button className="btn btn-primary" onClick={this.reset}>
-          Reset Counters
-        </button>
-        {this.state.counters.map((counter) => (
-          <Counter
-            key={counter.id}
-            counter={counter}
-            deleteOnParent={this.delete}
-            incrOnParent={this.incr}
-            decOnParent={this.dec}
-          />
-        ))}
-      </div>
-    );
-  }
+    counters.map((counter) => {
+      console.log(counter.value);
+      totalCount += counter.value;
+    });
+    dispacth(appSlice.actions.setTotalCount({ totalCount }));
+  };
+
+  return (
+    <div>
+      <button className="btn btn-primary" onClick={reset}>
+        Reset Counters
+      </button>
+      {counterList.counters.map((counter) => (
+        <Counter
+          key={counter.id}
+          counter={counter}
+          deleteOnParent={deleteIt}
+          incrOnParent={incr}
+          decOnParent={dec}
+        />
+      ))}
+    </div>
+  );
 }
 
 export default Counters;
